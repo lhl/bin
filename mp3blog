@@ -1,0 +1,68 @@
+#!/usr/bin/perl
+
+if(!$ARGV[0]) {
+  print "No arguments given.  \n";
+  exit;
+}
+
+use File::Spec::Functions qw[splitpath canonpath splitdir abs2rel rel2abs];
+$abspath = rel2abs($ARGV[0]);
+my($volume, $path, $file) = splitpath($abspath);
+my @dirs = splitdir($path);
+if($dirs[1] eq 'locker' && $dirs[2] eq 'music') {
+  my ($sec,$min,$hour,$mday,$mon,$year, $wday,$yday,$isdst) = localtime time;
+  $year += 1900;
+  $mon += 1;
+  $res = symlink ("$ARGV[0]", "/home/lhl/www/legacy.randomfoo.net/junk/$year$mon/$file");
+  $ARGV[0] = "$file";
+}
+
+
+$result = `id3v2 -l "$ARGV[0]"  | head -n 2 | tail -n 1`;
+
+
+($title, $artist) = split(/Artist: /, $result);
+($junk, $title) = split(/Title  : /, $title);
+
+$sa = $artist  = trim($artist);
+$st = $title  = trim($title);
+
+$song = $ARGV[0];
+$song =~ s/([^A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg;
+$sa =~ s/([^A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg;
+$st =~ s/([^A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg;
+
+$date = `pwd "$ARGV[0]" | cut -d '/' -f 7`;
+chomp($date);
+$url = "/junk/$date/$song";
+
+
+print <<EOF;
+<ul class="music">
+  <li>
+  <object type="application/x-shockwave-flash" data="/music/player.swf" width="290" height="24"><param name="movie" value="/music/player.swf" /><param name="FlashVars" value="bg=0xEFEFEF&leftbg=0xA01616&lefticon=0xFFDC6B&rightbg=0x999999&rightbghover=0x666666&righticon=0xF2F2F2&righticonhover=0xFFFFFF&text=0xFE8200&slider=0xFE8200&track=0xFFFFFF&border=0xFFFFFF&loader=0x666666&soundFile=http://randomfoo.net$url" /><param name="quality" value="high" /><param name="menu" value="false" /><param name="bgcolor" value="#FFFFFF" /></object>
+  <br /><a href="$url">$artist - $title</a>
+  </li>
+</ul>
+
+EOF
+
+# print <<EOF;
+# <ul>
+#   <li><a href="$url">$artist - $title</a>
+#   <object type="application/x-shockwave-flash" width="17" height="17" data="http://randomfoo.net/music/musicplayer.swf?song_url=http://randomfoo.net$url&song_title=$sa%20-%20$st">
+#     <param name="movie" value="http://randomfoo.net/music/musicplayer.swf?song_url=http://randomfoo.net$url&song_title=$sa%20-%20$st" />
+#   </object>
+#   </li>
+# </ul>
+# 
+# EOF
+
+
+
+sub trim($) {
+  my $string = shift;
+  $string =~ s/^\s+//;
+  $string =~ s/\s+$//;
+  return $string;
+}
