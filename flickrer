@@ -1,0 +1,119 @@
+#!/sw/bin/perl -w
+
+###
+# flickrer
+#
+# script to be run on cron to automatically u/l to Flickr
+#
+# @author     Leonard Lin <lhl@usc.edu>
+# @version    v0.1
+# @date       November 17, 2004
+# @notes
+#             requires:
+#               File::Basename
+#               File::Copy
+#               LWP::UserAgent
+#               Flickr::Upload
+
+
+### Variables ###
+my $email    = 'email';
+my $password = 'password';
+
+# Pre-Processing command
+my $prep     = 'sips -Z 1200';
+
+# File Locations
+my $dropbox  = '/dropbox/path';
+my $sentbox  = '/sentbox/path';
+
+
+
+### Shouldn't need to edit below this line ###
+use strict;
+
+# Check to see if there's a copy already running (not itself)
+open(CMD, 'ps auxw |');
+while(<CMD>) {
+  if(/flickrer/ && /perl -w/) {
+    my @x = split;
+    
+    # Already Running
+    if($x[1] != $$) {
+      die "flickrer appears to be running already/still\n";
+    }
+  }
+}
+
+## Dropbox Processing
+use File::Basename;
+use File::Copy;
+use LWP::UserAgent;
+use Flickr::Upload qw(upload);
+
+my $ua = LWP::UserAgent->new;
+my $photo;
+
+# Read files
+opendir(DIR, $dropbox) or die "Can't opendir $dropbox: $!";
+my @photos = grep { -f }             # plain file
+            map  { "$dropbox/$_" }  # full path
+            grep { !/^\./ }         # no dot files
+            readdir(DIR);
+
+foreach $photo (@photos) {
+  # move to .filename
+  (my $b, my $d) = fileparse($photo);
+  rename($photo, "$d.$b") or
+    warn "Couldn't rename $photo to $d.$b: $!\n";
+  $photo = "$d.$b";
+
+  # Pre-process
+  if($prep) {
+    system("$prep $photo");
+  }
+
+  # Upload
+  upload(
+    $ua,
+    'photo' => $photo,
+    'email' => $email,
+    'password' => $password,
+
+    # Everyone can view
+    'is_public' => 1,
+    'is_friend' => 1,
+    'is_family' => 1,
+
+    # OPTIONAL: 'tags' 'title' , 'description'
+  ) or die "Failed to upload $photo";
+
+  move($photo, "$sentbox/$b")
+    or die "move failed: $!";
+}
+
+### end of script
+
+
+
+
+
+### Flickr API test code
+# use Flickr::API;
+# use XML::Parser::Lite::Tree::XPath;
+#
+# my $api = new Flickr::API({'key' => 'd91b35b9a5f75a161fd60b6361b41f34'});
+# my $xp  = new XML::Parser::Lite::Tree::XPath();
+# my $rsp = $api->execute_method('flickr.contacts.getList', 
+#                                { 'email' => $email,
+#                                  'password' => $password, 
+#                                });
+# if ($rsp->{success}) {
+#   $xp->set_tree($rsp->{tree});
+# 
+#   my @nodes = $xp->select_nodes('/*');
+#   ## DEBUG
+#   use Data::Dumper;
+#   print $rsp->{_content};
+#   print Dumper(@nodes);
+# }
