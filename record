@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# One argument required
+if [ $# -gt 1 ]; then
+  echo "only one filename max (or blank for autonaming)
+usage: record [output file]"
+  exit
+elif [ $# -ne 1 ]; then
+  a=`date +"output_%Y%m%d_%H%M.mp3"`
+fi
+
+# filename cleanup
+
+# if no .mp3, add .mp3
+if [ "$1" != "`echo $1 | grep \.mp3$`" ]; then
+  a=$a.mp3 
+fi
+
+# if file exists, add a 1 after .mp3
+while [ "1" == "1" ]
+do
+  if [ -f "$1" ]; then
+    a=`echo $a | sed -e 's/\(\.mp3\)/\.1\1/'`
+  else
+    break
+  fi
+done
+
+# ready to write file
+echo $a
+#esdrec | lame -b 32 -m m -a - $a
+#esdrec | lame -b 64 -m s -a - $a
+esdrec | lame -b 64 -m m -a - $a
