@@ -1,0 +1,9 @@
+#!/usr/bin/python
+
+import os, sys
+from stat import *
+
+for f in os.listdir('./'):
+  mode = os.lstat(f)[ST_MODE]
+  if S_ISLNK(mode):
+    os.remove(f)
