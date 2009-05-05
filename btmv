@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Music Folder
+# m="$m" # already assigned
+
+if [ "$1" != "" ]; then
+  # If not renaming, then make it the same
+  if [ "$2" ]; then
+    target="$2"
+  else
+    target="$1"
+  fi
+
+  mv "$1" "$m"/"$target"
+  ln -s "$m"/"$target" "$1"
+else
+  echo 'Missing argument: requires a source name'
+fi
