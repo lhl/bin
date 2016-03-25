@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+
+
+import glob
+import os
+import subprocess
+import sys
+from   torrentool.api import Torrent
+
+
+def main():
+  DL_PATH = os.path.expanduser('~/Downloads') 
+  torrents = glob.glob('%s/*.torrent' % DL_PATH)
+
+  for torrent in torrents:
+    print(os.path.basename(torrent))
+    t = Torrent.from_file(torrent)
+    destination = get_destination(t.announce_urls[0][0])
+    print('Copying to %s' % destination)
+    scp_result = subprocess.call(['scp', torrent, destination])
+    if scp_result == 0:
+      print('Removing file')
+      os.remove(torrent)
+    print()
+
+
+def get_destination(url):
+
+  if 'what.cd' in url:
+    d = 'what'
+  elif 'tehconnection.eu' in url:
+    d = 'teh'
+  else:
+    print(url)
+    sys.exit()
+    d = 'misc'
+
+  return 'randomfoo.net:~/bt/%s/watch/' % d
+
+
+if __name__ == '__main__':
+  main()
+
+
+'''
+https://pypi.python.org/pypi/torrentool
+- used to parse info for torrents
+
+https://pypi.python.org/pypi/parse-torrent-name/
+- would be potentially useful for renaming
+'''
