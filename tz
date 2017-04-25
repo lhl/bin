@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# sudo dpkg-reconfigure tzdata
+
+timedatectl set-timezone $argv[1]
+# America/Los_Angeles
