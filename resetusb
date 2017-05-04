@@ -1,0 +1,10 @@
+#!/bin/bash
+
+if [ "$EUID" -ne 0 ]
+  then echo "Please run as root"
+  exit
+fi
+
+# http://www.ubuntubuzz.com/2016/06/reset-usb-20-ehci-usb-30-xhci-without-reboot-linux.html
+echo -n "0000:03:00.0" | tee /sys/bus/pci/drivers/xhci_hcd/unbind
+echo -n "0000:03:00.0" | tee /sys/bus/pci/drivers/xhci_hcd/bind
