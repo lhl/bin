@@ -4,6 +4,10 @@
 If you run Arch, it doesn't come w/ a suspend timer by default. Oops.
 However, since it's Lunix we can do a bit better
 
+Requires:
+
+  pacaur -S xautolock
+
 Put this in ~/.config/openbox/autostart
 
   xautolock -detectsleep -time 10 -locker /home/lhl/bin/sleep-if-idle.py -notify 60 -notifier 'notify-send -u critical -t 10000 "SLEEP in 60s"' &
@@ -18,7 +22,7 @@ This script will:
 See also: http://rabexc.org/posts/awesome-xautolock-battery
 '''
 
-
+import os
 import psutil
 from pulsectl import Pulse
 import subprocess
@@ -27,6 +31,15 @@ import time
 
 
 SHOULD_SLEEP = 1
+
+# LAPTOP CHECK
+'''
+We will only shut off the screen, not have it sleep completely if it's a PC
+'''
+if os.path.isdir('/sys/class/power_supply/AC'):
+  IS_LAPTOP = 1
+else:
+  IS_LAPTOP = 0
 
 
 ### AC check
@@ -95,4 +108,7 @@ if read+write > 2000000:
 if not SHOULD_SLEEP:
   subprocess.call(['xautolock', '-restart'])
 else:
-  subprocess.call(['systemctl', 'suspend'])
+  if IS_LAPTOP:
+    subprocess.call(['systemctl', 'suspend'])
+  else:
+    subprocess.call(['xset', 'dpms', 'force', 'suspend'])
