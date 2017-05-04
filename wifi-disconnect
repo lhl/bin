@@ -1,0 +1,1 @@
+nmcli dev disconnect iface wlan0
