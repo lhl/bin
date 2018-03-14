@@ -1,0 +1,8 @@
+#!/bin/sh
+
+# Clear all caches!
+paccache -ruk0
+pacaur -Scc
+
+echo "removing pacaur cache..."
+rm -rf ~/.cache/pacaur/*
