@@ -1,0 +1,2 @@
+sudo service lightdm restart
+# sudo pkill X
