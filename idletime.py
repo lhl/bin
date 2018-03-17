@@ -21,7 +21,7 @@ import time
 idle_ms = 0
 
 ### Get idle time
-proc = subprocess.Popen ('xprintidle', shell=False, stdout=subprocess.PIPE)
+proc = subprocess.Popen ('xprintidle', shell=False, stdout=subprocess.PIPE, env=dict(os.environ, DISPLAY=":0"))
 out = proc.communicate()[0]
 idle_ms = int(out.strip())
 
@@ -31,8 +31,11 @@ idle_ms = int(out.strip())
 # equivalent to:
 #   cat /proc/asound/card*/pcm*/sub*/status | grep RUNNING
 #   pacmd list-sink-inputs | wc -l
-pulse = Pulse('sleep-if-idle')
-if len(pulse.sink_input_list()):
-  idle_ms = 0
+try:
+  pulse = Pulse('sleep-if-idle')
+  if len(pulse.sink_input_list()):
+    idle_ms = 0
+except:
+  pass
 
 print(idle_ms, end='')
