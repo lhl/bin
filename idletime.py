@@ -31,11 +31,11 @@ idle_ms = int(out.strip())
 # equivalent to:
 #   cat /proc/asound/card*/pcm*/sub*/status | grep RUNNING
 #   pacmd list-sink-inputs | wc -l
-try:
-  pulse = Pulse('sleep-if-idle')
-  if len(pulse.sink_input_list()):
-    idle_ms = 0
-except:
-  pass
+proc = subprocess.Popen ('/home/lhl/bin/soundactive.py', shell=False, stdout=subprocess.PIPE, env=dict(os.environ, XDG_RUNTIME_DIR="/run/user/1000"))
+# proc = subprocess.Popen (['pactl', 'info'], shell=False, stdout=subprocess.PIPE, env=dict(os.environ, XDG_RUNTIME_DIR="/run/user/1000"))
+out = proc.communicate()[0]
+out = out.strip()
+if int(out):
+  idle_ms = 0
 
 print(idle_ms, end='')
